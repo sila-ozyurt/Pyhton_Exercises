@@ -1,30 +1,49 @@
-You are given a string s consisting of lowercase letters and an integer k. We call a string t ideal if the following conditions are satisfied:
+DATA SEGMENT 
+    num DB 0, 1, 2, 3, 4, 5, 6, 7, 8, 9    ; Array of decimal values 0-9,BİNARY VERSION OF THEM=HEX VERS 
+    ones_count DB 10 DUP(?)                   ; Array to store counts of 1s
+DATA ENDS
 
-t is a subsequence of the string s.
-The absolute difference in the alphabet order of every two adjacent letters in t is less than or equal to k.
-Return the length of the longest ideal string.
+CODE SEGMENT
+ASSUME CS:CODE, DS:DATA
+START:
+    MOV AX, DATA
+    MOV DS, AX
 
-A subsequence is a string that can be derived from another string by deleting some or no characters without changing the order of the remaining characters.
+    ; Initialize pointers
+    MOV SI, OFFSET num     ; Load address of num into SI
+    MOV DI, OFFSET ones_count ; Load address of ones_count array into DI
+    MOV CX, 10                ; Loop counter for 10 values
 
-Note that the alphabet order is not cyclic. For example, the absolute difference in the alphabet order of 'a' and 'z' is 25, not 1.
+COUNT_ONES:
+    ; Load current value from values array into AL
+    MOV AL, BYTE PTR [SI]
 
- 
+    ; Initialize count of 1s to 0
+    XOR BX, BX                ; CLEAR BX,BX will hold the count of 1s
+    MOV CH, 4                 ; max num in array is 1001, 4 bit is needed 
 
-Example 1:
+COUNT_BITS:
+    SHR AL, 1                 ; Shift right to bring the least significant bit to the carry flag
+    JNC SKIP_INCREMENT        ; If no carry (bit was 0), skip increment
+    INC BX                    ; Increment BX (count of 1s)
 
-Input: s = "acfgbd", k = 2
-Output: 4
-Explanation: The longest ideal string is "acbd". The length of this string is 4, so 4 is returned.
-Note that "acfgbd" is not ideal because 'c' and 'f' have a difference of 3 in alphabet order.
-Example 2:
+SKIP_INCREMENT:
+    DEC CH                    ; Decrement bit counter
+    JNZ COUNT_BITS            ; Repeat until all bits are processed
 
-Input: s = "abcd", k = 3
-Output: 4
-Explanation: The longest ideal string is "abcd". The length of this string is 4, so 4 is returned.
- 
+    ; Store the count of 1s in the ones_count array
+    MOV BYTE PTR[DI], BL
 
-Constraints:
+    ; Move to the next value,it is byte so 1 inc is enough
+    INC SI
 
-1 <= s.length <= 105
-0 <= k <= 25
-s consists of lowercase English letters.
+    ; Move to the next position,it is byte so 1 inc is enough
+    INC DI
+    
+    ; Decrement loop counter and repeat for next value
+    LOOP COUNT_ONES
+
+    INT 20h                   
+
+CODE ENDS
+END START
